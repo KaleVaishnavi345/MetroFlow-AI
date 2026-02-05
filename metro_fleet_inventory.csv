@@ -1,0 +1,17 @@
+rake_id,model,last_service_date,km_since_last_service,total_distance_km,current_status
+RAKE_01,CSR Puzhen,2025-10-20,4800.0,145000,Operational
+RAKE_02,CSR Puzhen,2025-10-22,4200.0,142000,Operational
+RAKE_03,CSR Puzhen,2025-10-25,0.0,151000,Operational
+RAKE_04,CSR Puzhen,2025-11-01,1200.0,130000,Operational
+RAKE_05,CSR Puzhen,2025-10-15,4950.0,160000,Operational
+RAKE_06,CSR Puzhen,2025-10-28,3100.0,138000,Operational
+RAKE_07,CSR Puzhen,2025-10-30,2500.0,144000,Operational
+RAKE_08,CSR Puzhen,2025-11-02,800.0,129000,Operational
+RAKE_09,CSR Puzhen,2025-10-24,3800.0,147000,Operational
+RAKE_10,CSR Puzhen,2025-10-18,4600.0,152000,Operational
+RAKE_11,CSR Puzhen,2025-11-03,500.0,131000,Operational
+RAKE_12,CSR Puzhen,2025-10-26,3300.0,140000,Operational
+RAKE_13,CSR Puzhen,2025-10-21,0.0,143000,Operational
+RAKE_14,CSR Puzhen,2025-10-29,2900.0,139000,Operational
+RAKE_15,CSR Puzhen,2025-11-04,200.0,125000,Operational
+RAKE_16,CSR Puzhen,2025-10-10,100.0,155000,Operational

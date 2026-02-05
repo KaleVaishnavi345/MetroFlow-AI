@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Fleet Command | Mumbai Metro</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f4f4f4; margin: 0; text-align: center; color: #333; }
+        .header { background: #005DAA; color: white; padding: 25px; border-bottom: 5px solid #FFD200; }
+        
+        .container { width: 90%; max-width: 1100px; margin: 30px auto; }
+        
+        /* Matching Dashboard Card Style */
+        .card { 
+            background: white; padding: 30px; border-radius: 15px; 
+            box-shadow: 0 8px 16px rgba(0,0,0,0.1); margin-bottom: 30px; 
+            text-align: left; border-left: 8px solid #FFD200; 
+        }
+
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; background: white; }
+        th { background: #005DAA; color: white; padding: 15px; text-align: left; }
+        td { border: 1px solid #eee; padding: 12px; font-size: 14px; }
+        
+        /* Highlight the editable areas */
+        .km-input { width: 100px; padding: 5px; border: 1px solid #ddd; border-radius: 4px; background: #fff9e6; font-weight: bold; }
+        .status-select { padding: 5px; border: 1px solid #ddd; border-radius: 4px; background: #fff9e6; font-weight: bold; cursor: pointer; }
+
+        .btn-group { display: flex; gap: 15px; margin-top: 20px; }
+        .btn { padding: 12px 25px; font-weight: bold; border-radius: 5px; cursor: pointer; border: none; transition: 0.3s; }
+        .btn-approve { background: #28a745; color: white; flex: 2; box-shadow: 0 4px 10px rgba(40,167,69,0.2); }
+        .btn-approve:hover { background: #218838; transform: scale(1.01); }
+        .btn-print { background: #6c757d; color: white; flex: 1; }
+        
+        .back-link { display: inline-block; margin-top: 20px; color: #005DAA; text-decoration: none; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <h1>FLEET MAINTENANCE COMMAND</h1>
+        <p>Real-time Rake Health & Operational Sync</p>
+    </div>
+
+    <div class="container">
+        
+        <div class="card" style="border-left-color: #005DAA;">
+            <h3 style="color: #005DAA; margin-top: 0;">📊 Fleet Health Analytics</h3>
+            <div>{{ chart_html | safe }}</div>
+        </div>
+
+        <div class="card">
+            <h3 style="color: #005DAA; margin-top: 0;">🛠️ Managerial Override</h3>
+            <p style="color: #666; font-size: 14px;">
+                Changes made here update the <b>System Global Memory</b>. 
+                Rakes set to 'Maintenance' will be automatically excluded from AI scheduling.
+            </p>
+
+            <table id="inventoryTable">
+                <thead>
+                    <tr>
+                        <th>Rake ID</th>
+                        <th>Total Life KM</th>
+                        <th>KM Since Service</th>
+                        <th>Current Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for rake in inventory_data %}
+                    <tr data-id="{{ rake.rake_id }}">
+                        <td style="font-weight: bold; color: #005DAA;">{{ rake.rake_id }}</td>
+                        <td>{{ rake.total_distance_km }}</td>
+                        <td>
+                            <input type="number" class="km-input" value="{{ rake.km_since_last_service }}">
+                        </td>
+                        <td>
+                            <select class="status-select">
+                                <option value="Operational" {% if rake.current_status == 'Operational' %}selected{% endif %}>Operational</option>
+                                <option value="Maintenance" {% if rake.current_status == 'Maintenance' %}selected{% endif %}>Maintenance</option>
+                            </select>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+
+            <div class="btn-group">
+                <button onclick="commitChanges()" id="approveBtn" class="btn btn-approve">
+                    ✅ APPROVE & COMMIT TO SYSTEM
+                </button>
+                <button onclick="window.print()" class="btn btn-print">🖨️ PRINT REPORT</button>
+            </div>
+        </div>
+
+        <a href="/" class="back-link">← Return to Control Centre Dashboard</a>
+    </div>
+
+    <script>
+    function commitChanges() {
+        if (!confirm("Confirm manual override? This will be recorded in the Security Audit Trail.")) return;
+
+        const btn = document.getElementById("approveBtn");
+        btn.innerHTML = "SYNCING WITH SERVER...";
+        btn.disabled = true;
+
+        // Gather all rows from the table
+        let rows = document.querySelectorAll('#inventoryTable tbody tr');
+        let updatedData = [];
+
+        rows.forEach(row => {
+            updatedData.push({
+                rake_id: row.getAttribute('data-id'),
+                km: row.querySelector('.km-input').value,
+                status: row.querySelector('.status-select').value
+            });
+        });
+
+        // POST the data to your /approve_inventory route in main.py
+        fetch('/approve_inventory', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(updatedData)
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'success') {
+                alert("✅ SUCCESS: System Global Memory Updated.");
+                window.location.href = "/"; // Back to dashboard to see logs & alerts
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert("❌ SYNC ERROR: Could not reach the server.");
+            btn.innerHTML = "✅ APPROVE & COMMIT TO SYSTEM";
+            btn.disabled = false;
+        });
+    }
+    </script>
+</body>
+</html>

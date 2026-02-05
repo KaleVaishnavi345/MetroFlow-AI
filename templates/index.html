@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Mumbai Metro Dashboard</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f4f4f4; margin: 0; padding: 0; }
+        .header { background-color: #005DAA; color: white; padding: 30px; text-align: center; border-bottom: 5px solid #FFD200; position: relative; }
+        .logout-btn { position: absolute; right: 20px; top: 30px; color: #FFD200; text-decoration: none; border: 1px solid #FFD200; padding: 8px 15px; border-radius: 5px; font-weight: bold; }
+        .logout-btn:hover { background: #FFD200; color: #005DAA; }
+
+        /* Weather Widget Style */
+        .weather-bar { background: #e9ecef; padding: 12px; font-weight: bold; color: #333; display: flex; justify-content: center; gap: 20px; border-bottom: 1px solid #ccc; }
+        .live-dot { height: 10px; width: 10px; background-color: #28a745; border-radius: 50%; display: inline-block; margin-right: 5px; animation: blinker 1.5s linear infinite; }
+        @keyframes blinker { 50% { opacity: 0; } }
+
+        .container { display: flex; justify-content: center; gap: 30px; margin-top: 30px; flex-wrap: wrap; padding: 0 20px; }
+        
+        /* Unified Card Style */
+        .card { background: white; padding: 30px; border-radius: 15px; box-shadow: 0 8px 16px rgba(0,0,0,0.1); text-align: center; transition: transform 0.3s; }
+        .hub-card { width: 320px; }
+        .log-card { width: 80%; max-width: 1000px; text-align: left; border-left: 8px solid #28a745; margin: 30px auto; }
+        
+        .card:hover { transform: translateY(-5px); }
+        
+        h3 { color: #005DAA; margin-top: 0; }
+        p { color: #666; font-size: 0.95em; line-height: 1.6; }
+
+        .btn { display: inline-block; padding: 12px 25px; background-color: #005DAA; color: white; 
+               text-decoration: none; font-weight: bold; border-radius: 25px; margin-top: 20px; border: 2px solid #005DAA; }
+        .btn-alt { background-color: #FFD200; color: #005DAA; border-color: #FFD200; }
+        .btn:hover { background-color: white; color: #005DAA; }
+
+        .log-box { background: #f8f9fa; padding: 15px; border-radius: 8px; border: 1px solid #ddd; height: 150px; overflow-y: auto; font-family: 'Courier New', monospace; }
+        .alert-box { background: #ffcccc; border: 2px solid red; color: darkred; padding: 15px; margin: 20px auto; width: 80%; border-radius: 10px; text-align: center; }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <a href="/logout" class="logout-btn">LOGOUT</a>
+        <h1>MUMBAI METRO LINE 1 CONTROL CENTRE</h1>
+        <p style="color: white; opacity: 0.9;">AI-Powered Timetable Prediction & Fleet Management</p>
+    </div>
+
+    {% if alerts %}
+    <div class="alert-box">
+        <strong>⚠️ MAINTENANCE ALERT:</strong> The following Rakes have exceeded 5000km and are grounded: 
+        <b>{{ alerts | join(', ') }}</b>
+    </div>
+    {% endif %}
+
+    <div class="weather-bar">
+        <span><span class="live-dot"></span> System Live</span>
+        <span>|</span>
+        <span>Mumbai Weather: <b>{{ temp }}°C</b></span>
+        <span>|</span>
+        <span>Condition: <b>{{ cond }}</b></span>
+    </div>
+
+    <div class="container">
+        <div class="card hub-card">
+            <div style="font-size: 40px;">📅</div>
+            <h3>Operations Hub</h3>
+            <p>Predict tomorrow's timetable using the <b>Random Forest Regressor</b> model based on live weather and historical demand.</p>
+            <a href="/generate" class="btn">GENERATE SCHEDULE</a>
+        </div>
+
+        <div class="card hub-card">
+            <div style="font-size: 40px;">🚇</div>
+            <h3>Fleet Command</h3>
+            <p>Monitor Rake health, track cumulative mileage, and visualize maintenance schedules with interactive charts.</p>
+            <a href="/inventory" class="btn btn-alt">VIEW INVENTORY</a>
+        </div>
+    </div>
+
+    <div class="card log-card">
+        <h3 style="border-bottom: 2px solid #FFD200; padding-bottom: 10px; display: flex; align-items: center; gap: 10px;">
+            🛡️ SECURITY AUDIT TRAIL
+        </h3>
+        <p style="margin-bottom: 15px;">Real-time tamper-proof record of all manager approvals and AI decisions.</p>
+        
+        <div class="log-box">
+            {% for log in logs %}
+                <div style="margin-bottom: 5px; font-size: 13px; border-bottom: 1px solid #eee; padding-bottom: 3px;">
+                    <span style="color: #28a745; font-weight: bold;">[SECURE]</span> {{ log }}
+                </div>
+            {% endfor %}
+        </div>
+        <p style="font-size: 11px; color: #888; margin-top: 10px; text-align: right;">* Actions in this log are timestamped and linked to admin session.</p>
+    </div>
+
+    <div style="text-align: center; margin-bottom: 30px; color: #999; font-size: 0.8em;">
+        Data Source: OpenWeather API & Local Historical Datasets
+    </div>
+
+</body>
+</html>

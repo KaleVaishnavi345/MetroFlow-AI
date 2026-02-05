@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Daily Timetable | Mumbai Metro</title>
+    <style>
+        body { font-family: 'Segoe UI', Arial, sans-serif; text-align: center; background: #f4f4f4; margin: 0; padding-bottom: 50px; }
+        .header { background: #005DAA; color: white; padding: 25px; border-bottom: 5px solid #FFD200; }
+        .container { width: 95%; max-width: 1100px; margin: 30px auto; }
+        
+        .card { 
+            background: white; padding: 30px; border-radius: 15px; 
+            box-shadow: 0 8px 16px rgba(0,0,0,0.1); margin-bottom: 40px; 
+            text-align: left; border-left: 10px solid #005DAA; 
+            position: relative;
+        }
+
+        .status-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .badge { background: #FFD200; color: #005DAA; padding: 8px 15px; border-radius: 20px; font-weight: bold; }
+
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        th { background: #005DAA; color: white; padding: 12px; text-align: left; position: sticky; top: 0; }
+        td { border: 1px solid #eee; padding: 10px; font-size: 14px; }
+        tr:nth-child(even) { background: #f9f9f9; }
+        
+        .editable-cell { background: #fff9e6; border: 1px dashed #FFD200 !important; cursor: text; font-weight: bold; }
+
+        .btn { padding: 12px 25px; font-weight: bold; border-radius: 5px; cursor: pointer; border: none; transition: 0.3s; }
+        .btn-lock { background: #28a745; color: white; font-size: 14px; }
+        .btn-lock:hover { background: #218838; transform: scale(1.02); }
+        
+        .back-link { display: inline-block; margin: 20px; color: #005DAA; text-decoration: none; font-weight: bold; }
+        
+        @media print {
+            .btn-lock, .back-link { display: none; }
+            .card { box-shadow: none; border: 1px solid #005DAA; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <h1>AI-GENERATED MULTI-DAY SCHEDULE</h1>
+        <p>Operational Forecast for Mumbai Metro Line 1</p>
+    </div>
+
+    <div class="container">
+        <div class="card" style="border-left-color: #FFD200;">
+            <div class="status-header">
+                <h3 style="margin:0;">🌤️ AI Context: {{ cond }}</h3>
+                <span class="badge">Frequency: {{ gap }} min gap</span>
+            </div>
+            <p>Predictive logic based on <b>{{ temp }}°C</b> weather and historical passenger load. Rake assignments are ordered 1-16 while respecting maintenance status.</p>
+        </div>
+
+        {% for day in schedules %}
+        <div class="card" id="card-{{ loop.index }}">
+            <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #eee; padding-bottom: 15px; margin-bottom: 15px;">
+                <h2 style="color: #005DAA; margin: 0;">📅 Date: {{ day.date }}</h2>
+                <div style="text-align: right;">
+                    <span style="display: block; font-size: 12px; color: #666; margin-bottom: 5px;">Standby: Rake {{ day.standby }}</span>
+                    <button onclick="lockDay('{{ day.date }}', {{ loop.index }}, '{{ day.standby }}')" id="btn-{{ loop.index }}" class="btn btn-lock">
+                        🔒 LOCK & SAVE THIS DAY
+                    </button>
+                </div>
+            </div>
+            <details style="margin-bottom: 15px; background: #f8f9fa; padding: 10px; border-radius: 5px;">
+    <summary style="cursor: pointer; font-weight: bold; color: #666;">🔍 View Predicted Fleet Health for this Date</summary>
+    <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-top: 10px;">
+        {% for rake in day.fleet_state_at_start %}
+        <div style="font-size: 11px; padding: 5px; border: 1px solid #ddd; border-radius: 3px; 
+                    background: {% if rake.current_status == 'Maintenance' %}#ffdce0{% else %}#e2f3e5{% endif %};">
+            <b>{{ rake.rake_id }}</b>: {{ rake.km_since_last_service }} km<br>
+            <i>{{ rake.current_status }}</i>
+        </div>
+        {% endfor %}
+    </div>
+</details>
+
+            <div style="max-height: 450px; overflow-y: auto;">
+                <table id="table-{{ loop.index }}">
+                    <thead>
+                        <tr>
+                            <th>Sr. No</th>
+                            <th>Rake No</th>
+                            <th>Departure Time</th>
+                            <th>Operational Mode</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for row in day.timetable %}
+                        <tr>
+                            <td>{{ row.Serial_No }}</td>
+                            <td contenteditable="true" class="editable-cell">{{ row.Rake_No }}</td>
+                            <td contenteditable="true" class="editable-cell">{{ row.Time }}</td>
+                            <td>
+                                <span style="color: {% if 'PEAK' in row.Mode %}#d9534f{% else %}#5bc0de{% endif %}; font-weight: bold;">
+                                    {{ row.Mode }}
+                                </span>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        {% endfor %}
+
+        <a href="/" class="back-link">← Return to Control Centre Dashboard</a>
+    </div>
+
+    <script>
+    function lockDay(dateStr, index, standbyRake) {
+        if(!confirm("Lock and Save schedule for " + dateStr + "?\n\nThis will be permanently recorded in the system database.")) return;
+
+        const btn = document.getElementById('btn-' + index);
+        btn.innerHTML = "SAVING...";
+        btn.disabled = true;
+
+        // Grab table data
+        let table = document.getElementById('table-' + index);
+        let rows = table.querySelectorAll('tbody tr');
+        let timetableData = [];
+        
+        rows.forEach(row => {
+            let cols = row.querySelectorAll('td');
+            timetableData.push({
+                "Serial_No": cols[0].innerText,
+                "Rake_No": cols[1].innerText,
+                "Time": cols[2].innerText,
+                "Mode": cols[3].innerText
+            });
+        });
+
+        // Send to main.py route
+        fetch('/commit_schedule', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({
+                date: dateStr,
+                timetable: timetableData,
+                standby: standbyRake
+            })
+        })
+        .then(res => res.json())
+        .then(data => {
+            if(data.status === 'success') {
+                alert("✅ SUCCESS!\nTimetable for " + dateStr + " has been locked.\nEven after logout, this schedule will remain unchanged.");
+                btn.innerHTML = "✅ LOCKED";
+                btn.style.background = "#6c757d";
+                document.getElementById('card-' + index).style.borderLeftColor = "#28a745";
+            } else {
+                alert("❌ Save Failed. Check console.");
+                btn.innerHTML = "🔒 LOCK & SAVE THIS DAY";
+                btn.disabled = false;
+            }
+        })
+        .catch(err => {
+            console.error(err);
+            alert("❌ Server Error. Is main.py running?");
+            btn.disabled = false;
+        });
+    }
+    </script>
+
+</body>
+</html>

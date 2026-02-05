@@ -1,0 +1,14 @@
+parameter,value,source
+First_Train_Time,06:00,Reliance Mumbai Metro
+Last_Train_Time,23:00,Reliance Mumbai Metro
+Morning_Peak_Start,08:00,Reliance Mumbai Metro
+Morning_Peak_End,10:00,Reliance Mumbai Metro
+Evening_Peak_Start,17:00,Reliance Mumbai Metro
+Evening_Peak_End,19:00,Reliance Mumbai Metro
+Peak_Headway_Min,4,Reliance Mumbai Metro
+Peak_Headway_Max,8,Reliance Mumbai Metro
+OffPeak_Headway_Min,8,Reliance Mumbai Metro
+OffPeak_Headway_Max,10,Reliance Mumbai Metro
+Route_Distance_km,14.4,Reliance Mumbai Metro
+Journey_Time_Minutes,36,Reliance Mumbai Metro
+
